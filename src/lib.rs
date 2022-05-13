@@ -24,10 +24,22 @@
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
-
 #[cfg(test)]
 #[macro_use]
 extern crate std;
+
+#[cfg(feature = "pairings")]
+pub use fp::Fp;
+#[cfg(feature = "groups")]
+pub use g1::{G1Affine, G1Projective};
+#[cfg(feature = "groups")]
+pub use g2::{G2Affine, G2Projective};
+#[cfg(all(feature = "pairings", feature = "alloc"))]
+pub use pairings::{multi_miller_loop, G2Prepared};
+#[cfg(feature = "pairings")]
+pub use pairings::{pairing, Gt, MillerLoopResult};
+pub use scalar::Scalar as BlsScalar;
+pub use scalar::{GENERATOR, ROOT_OF_UNITY, TWO_ADACITY};
 
 #[cfg(test)]
 #[cfg(feature = "groups")]
@@ -45,9 +57,6 @@ pub mod notes {
 
 mod scalar;
 
-pub use scalar::Scalar as BlsScalar;
-pub use scalar::{GENERATOR, ROOT_OF_UNITY, TWO_ADACITY};
-
 #[cfg(feature = "groups")]
 mod fp;
 #[cfg(feature = "groups")]
@@ -56,11 +65,6 @@ mod fp2;
 mod g1;
 #[cfg(feature = "groups")]
 mod g2;
-
-#[cfg(feature = "groups")]
-pub use g1::{G1Affine, G1Projective};
-#[cfg(feature = "groups")]
-pub use g2::{G2Affine, G2Projective};
 
 #[cfg(feature = "groups")]
 mod fp12;
@@ -76,11 +80,13 @@ const BLS_X_IS_NEGATIVE: bool = true;
 #[cfg(feature = "pairings")]
 mod pairings;
 
-#[cfg(feature = "pairings")]
-pub use pairings::{pairing, Gt, MillerLoopResult};
-
-#[cfg(all(feature = "pairings", feature = "alloc"))]
-pub use pairings::{multi_miller_loop, G2Prepared};
-
 #[cfg(all(feature = "groups", feature = "alloc"))]
 pub mod multiscalar_mul;
+
+#[cfg(feature = "gpu")]
+fn u64_to_u32(limbs: &[u64]) -> Vec<u32> {
+    limbs
+        .iter()
+        .flat_map(|limb| vec![(limb & 0xFFFF_FFFF) as u32, (limb >> 32) as u32])
+        .collect()
+}

@@ -1,17 +1,16 @@
 //! This module provides an implementation of the BLS12-381 base field `GF(p)`
 //! where `p = 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab`
 
-#[cfg(feature = "canon")]
-use canonical_derive::Canon;
 use core::convert::TryFrom;
 use core::fmt;
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+#[cfg(feature = "canon")]
+use canonical_derive::Canon;
 #[cfg(feature = "serde_req")]
 use serde::{
     self, de::Visitor, ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer,
 };
-
 use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
 
 use crate::util::{adc, mac, sbb};
@@ -52,6 +51,7 @@ impl ConstantTimeEq for Fp {
 }
 
 impl Eq for Fp {}
+
 impl PartialEq for Fp {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -611,6 +611,21 @@ impl Fp {
     }
 }
 
+#[cfg(feature = "gpu")]
+impl ec_gpu::GpuField for Fp {
+    fn one() -> Vec<u32> {
+        crate::u64_to_u32(&R.0)
+    }
+
+    fn r2() -> Vec<u32> {
+        crate::u64_to_u32(&R2.0)
+    }
+
+    fn modulus() -> Vec<u32> {
+        crate::u64_to_u32(&MODULUS)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -788,12 +803,12 @@ mod tests {
     #[test]
     fn test_debug() {
         assert_eq!(
-        format!(
-            "{:?}",
-            Fp([0x5360bb5978678032, 0x7dd275ae799e128e, 0x5c5b5071ce4f4dcf, 0xcdb21f93078dbb3e, 0xc32365c5e73f474a, 0x115a2a5489babe5b])
-        ),
-        "0x104bf052ad3bc99bcb176c24a06a6c3aad4eaf2308fc4d282e106c84a757d061052630515305e59bdddf8111bfdeb704"
-    );
+            format!(
+                "{:?}",
+                Fp([0x5360bb5978678032, 0x7dd275ae799e128e, 0x5c5b5071ce4f4dcf, 0xcdb21f93078dbb3e, 0xc32365c5e73f474a, 0x115a2a5489babe5b])
+            ),
+            "0x104bf052ad3bc99bcb176c24a06a6c3aad4eaf2308fc4d282e106c84a757d061052630515305e59bdddf8111bfdeb704"
+        );
     }
 
     #[test]

@@ -1,20 +1,21 @@
 //! This module provides an implementation of the BLS12-381 scalar field $\mathbb{F}_q$
 //! where `q = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001`
 
-use crate::util::{adc, mac, sbb};
-#[cfg(feature = "canon")]
-use canonical_derive::Canon;
 use core::borrow::Borrow;
 use core::cmp::{Ord, Ordering, PartialOrd};
 use core::convert::TryFrom;
 use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, BitAnd, BitXor, Mul, MulAssign, Neg, Sub, SubAssign};
+
+#[cfg(feature = "canon")]
+use canonical_derive::Canon;
 use dusk_bytes::{Error as BytesError, HexDebug, Serializable};
 use rand_core::{CryptoRng, RngCore};
-use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
-
 #[cfg(feature = "serde_req")]
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
+use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
+
+use crate::util::{adc, mac, sbb};
 
 /// Represents an element of the scalar field $\mathbb{F}_q$ of the BLS12-381 elliptic
 /// curve construction.
@@ -884,6 +885,21 @@ impl Scalar {
                 t = t2;
             }
         }
+    }
+}
+
+#[cfg(feature = "gpu")]
+impl ec_gpu::GpuField for Scalar {
+    fn one() -> Vec<u32> {
+        crate::u64_to_u32(&R.0)
+    }
+
+    fn r2() -> Vec<u32> {
+        crate::u64_to_u32(&R2.0)
+    }
+
+    fn modulus() -> Vec<u32> {
+        crate::u64_to_u32(&MODULUS.0)
     }
 }
 
