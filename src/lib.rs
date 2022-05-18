@@ -67,6 +67,9 @@ mod fp12;
 #[cfg(feature = "groups")]
 mod fp6;
 
+#[cfg(feature = "groups")]
+pub use fp::Fp;
+
 // The BLS parameter x for BLS12-381 is -0xd201000000010000
 #[cfg(feature = "groups")]
 const BLS_X: u64 = 0xd201000000010000;
